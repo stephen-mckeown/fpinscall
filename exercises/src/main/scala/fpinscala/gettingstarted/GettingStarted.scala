@@ -15,16 +15,19 @@ object MyModule {
 
   def main(args: Array[String]): Unit =
     println(formatAbs(-42))
+  println(formatFactorial(5))
 
   // A definition of factorial, using a local, tail recursive function
   def factorial(n: Int): Int = {
     @annotation.tailrec
     def go(n: Int, acc: Int): Int =
       if (n <= 0) acc
-      else go(n-1, n*acc)
+      else go(n - 1, n * acc)
 
     go(n, 1)
   }
+  println(("factorial", factorial(5)))
+
 
   // Another implementation of `factorial`, this time with a `while` loop
   def factorial2(n: Int): Int = {
@@ -36,7 +39,14 @@ object MyModule {
 
   // Exercise 1: Write a function to compute the nth fibonacci number
 
-  def fib(n: Int): Int = ???
+  def fib(n: Int): Int = {
+    @annotation.tailrec
+    def go(index: Int, total: Int, previousTotal: Int): Int = {
+      if(index == n)  total
+      else go(index +1, total+previousTotal, total)
+    }
+    go(0,0,1)
+  }
 
   // This definition and `formatAbs` are very similar..
   private def formatFactorial(n: Int) = {
@@ -50,6 +60,8 @@ object MyModule {
     val msg = "The %s of %d is %d."
     msg.format(name, n, f(n))
   }
+
+  println(formatResult("factorial", 6, factorial))
 }
 
 object FormatAbsAndFactorial {
@@ -95,6 +107,7 @@ object AnonymousFunctions {
 
 object MonomorphicBinarySearch {
 
+
   // First, a binary search implementation, specialized to `Double`,
   // another primitive type in Scala, representing 64-bit floating
   // point numbers
@@ -107,7 +120,7 @@ object MonomorphicBinarySearch {
       else {
         val mid2 = (low + high) / 2
         val d = ds(mid2) // We index into an array using the same
-                         // syntax as function application
+        // syntax as function application
         if (d == key) mid2
         else if (d > key) go(low, mid2, mid2-1)
         else go(mid2 + 1, mid2, high)
@@ -119,6 +132,10 @@ object MonomorphicBinarySearch {
 }
 
 object PolymorphicFunctions {
+
+  def main(args: Array[String]): Unit = {
+    println( isSorted(unSortedArray, gtInt ))
+  }
 
   // Here's a polymorphic version of `binarySearch`, parameterized on
   // a function for testing whether an `A` is greater than another `A`.
@@ -140,7 +157,24 @@ object PolymorphicFunctions {
 
   // Exercise 2: Implement a polymorphic function to check whether
   // an `Array[A]` is sorted
-  def isSorted[A](as: Array[A], gt: (A,A) => Boolean): Boolean = ???
+  def isSorted[A](as: Array[A], gt: (A,A) => Boolean): Boolean = {
+    def go(n: Int): Boolean = {
+      if (n >= as.length - 1) true
+      else if (gt(as(n), as(n + 1))) false
+      else go(n + 1)
+    }
+    go(0)
+  }
+
+  def gtInt(a: Int, b: Int): Boolean = {
+    if(a > b) true
+    else false
+  }
+
+  val sortedArray: Array[Int] = Array(1,2,3,4)
+  val unSortedArray = Array(2,1,3,4)
+
+
 
   // Polymorphic functions are often so constrained by their type
   // that they only have one implementation! Here's an example:
@@ -152,14 +186,17 @@ object PolymorphicFunctions {
 
   // Note that `=>` associates to the right, so we could
   // write the return type as `A => B => C`
-  def curry[A,B,C](f: (A, B) => C): A => (B => C) =
-    ???
+  def curry[A,B,C](f: (A, B) => C): A => (B => C) = {
+    a: A => b: B => f(a: A, b: B)
+  }
 
   // NB: The `Function2` trait has a `curried` method already
 
   // Exercise 4: Implement `uncurry`
-  def uncurry[A,B,C](f: A => B => C): (A, B) => C =
-    ???
+  def uncurry[A,B,C](f: A => B => C): (A, B) => C = {
+    (A, B) => f(A)(B)
+  }
+
 
   /*
   NB: There is a method on the `Function` object in the standard library,
@@ -174,5 +211,7 @@ object PolymorphicFunctions {
   // Exercise 5: Implement `compose`
 
   def compose[A,B,C](f: B => C, g: A => B): A => C =
-    ???
+  // B = g(A)
+  // C = f(B)
+    A => f(g(A))
 }
